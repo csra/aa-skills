@@ -48,14 +48,6 @@ public class ResultHandler {
 		}
 	}
 
-	public Set<String> withMovement(ClassificationResultMapType.ClassificationResultMap sit) {
-		return filter(sit, "some");
-	}
-
-	public Set<String> withoutMovement(ClassificationResultMapType.ClassificationResultMap sit) {
-		return filter(sit, "none");
-	}
-
 	public Set<String> filter(ClassificationResultMapType.ClassificationResultMap sit, String decided) {
 		Set<String> matching = sit.getAspectsList().stream()
 				.filter(a -> a.getName().startsWith("Movement_"))
