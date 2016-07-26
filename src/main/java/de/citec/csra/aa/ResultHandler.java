@@ -36,6 +36,10 @@ public class ResultHandler {
 		Set<String> movement = filter(m, "some");
 		Set<String> noMovement = filter(m, "none");
 		noMovement.removeAll(movement);
+		
+		movement.remove("Sports");
+		noMovement.remove("Sports");
+		
 		LOG.log(Level.INFO, "movement: {0}, no movement: {1}", new Object[]{movement, noMovement});
 
 		for (Executor e : this.execs) {
