@@ -11,6 +11,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import rsb.Informer;
 import rsb.RSBException;
+import rst.communicationpatterns.ResourceAllocationType.ResourceAllocation.Initiator;
 import rst.communicationpatterns.ResourceAllocationType.ResourceAllocation.Policy;
 import rst.communicationpatterns.ResourceAllocationType.ResourceAllocation.Priority;
 
@@ -26,7 +27,7 @@ public class OffExecutable extends ExecutableResource {
 	private final String cmd;
 
 	public OffExecutable(String location, Informer informer) {
-		super("auto-off:" + location, Policy.PRESERVE, Priority.LOW, location);
+		super("auto-off:" + location, Policy.PRESERVE, Priority.LOW, Initiator.SYSTEM, location);
 		this.informer = informer;
 		this.cmd = "OFF:" + location;
 	}

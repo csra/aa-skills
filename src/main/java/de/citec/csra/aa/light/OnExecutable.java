@@ -12,6 +12,7 @@ import java.util.logging.Logger;
 import rsb.Informer;
 import rsb.RSBException;
 import rst.communicationpatterns.ResourceAllocationType;
+import rst.communicationpatterns.ResourceAllocationType.ResourceAllocation.Initiator;
 import rst.communicationpatterns.ResourceAllocationType.ResourceAllocation.Policy;
 import rst.communicationpatterns.ResourceAllocationType.ResourceAllocation.Priority;
 
@@ -27,7 +28,7 @@ public class OnExecutable extends ExecutableResource {
 	private final String cmd;
 
 	public OnExecutable(String location, Informer informer) {
-		super("auto-on:" + location, Policy.MAXIMUM, Priority.NORMAL, location);
+		super("auto-on:" + location, Policy.MAXIMUM, Priority.NORMAL, Initiator.SYSTEM, location);
 		this.informer = informer;
 		this.cmd = "ON:" + location;
 	}
