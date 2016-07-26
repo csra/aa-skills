@@ -5,7 +5,7 @@
  */
 package de.citec.csra.aa.light;
 
-import de.citec.csra.allocation.ExecutableResource;
+import de.citec.csra.allocation.cli.ExecutableResource;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
