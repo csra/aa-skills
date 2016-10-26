@@ -3,13 +3,32 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>de.citec.csra</groupId>
     <artifactId>aa-skills</artifactId>
-    <version>0.3-SNAPSHOT</version>
+    <version>0.3</version>
     <packaging>jar</packaging>
+	
+	<repositories>
+		<repository>
+			<id>citec-releases</id>
+			<name>CITEC Maven Repository Server</name>
+			<url>https://mvn.cit-ec.de/nexus/content/repositories/releases/</url>
+			<layout>default</layout>
+			<releases>
+				<enabled>true</enabled>
+			</releases>
+		</repository>
+	</repositories>
+	
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>arbitration-service</artifactId>
             <version>[0.7,)</version>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>${project.groupId}</groupId>
+            <artifactId>ha-utils</artifactId>
+            <version>[0.3,)</version>
             <type>jar</type>
         </dependency>
     </dependencies>

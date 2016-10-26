@@ -6,14 +6,19 @@
 package de.citec.csra.aa.light;
 
 import de.citec.csra.allocation.cli.ExecutableResource;
+import de.citec.csra.util.Remotes;
 import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import rsb.Informer;
-import rsb.RSBException;
+import org.openbase.bco.dal.remote.unit.ColorableLightRemote;
+import org.openbase.jul.exception.CouldNotPerformException;
+import org.openbase.jul.extension.rsb.scope.ScopeGenerator;
 import rst.communicationpatterns.ResourceAllocationType.ResourceAllocation.Initiator;
 import rst.communicationpatterns.ResourceAllocationType.ResourceAllocation.Policy;
 import rst.communicationpatterns.ResourceAllocationType.ResourceAllocation.Priority;
+import rst.domotic.state.PowerStateType;
+import static rst.domotic.state.PowerStateType.PowerState.State.OFF;
+import rst.domotic.unit.UnitConfigType.UnitConfig;
 
 /**
  *
@@ -23,25 +28,33 @@ import rst.communicationpatterns.ResourceAllocationType.ResourceAllocation.Prior
 public class OffExecutable extends ExecutableResource {
 
 	private final static Logger LOG = Logger.getLogger(OffExecutable.class.getName());
-	private final Informer informer;
-	private final String cmd;
+	private final UnitConfig unit;
 
-	public OffExecutable(String location, Informer informer) {
-		super("auto-off:" + location, Policy.PRESERVE, Priority.LOW, Initiator.SYSTEM, location);
-		this.informer = informer;
-		this.cmd = "OFF:" + location;
+	public OffExecutable(UnitConfig unit) {
+		super("auto-on:" + unit.getLabel(),
+				Policy.PRESERVE,
+				Priority.LOW,
+				Initiator.SYSTEM,
+				ScopeGenerator.generateStringRep(unit.getScope()));
+		this.unit = unit;
 	}
 
 	@Override
 	public Object execute(long slice) throws ExecutionException {
 		try {
-			LOG.log(Level.INFO, "switching: {0}", cmd);
-			informer.publish(cmd);
-		} catch (RSBException ex) {
-			LOG.log(Level.SEVERE, "could not publish", ex);
+			long start = System.currentTimeMillis();
+			ColorableLightRemote light = Remotes.get().getColorableLight(unit);
+			LOG.log(Level.FINE, "execute setPower async with parameters ''{0}'' at ''{1}''", new Object[]{OFF, unit.getLabel()});
+			light.setPowerState(PowerStateType.PowerState.newBuilder().setValue(OFF).build());
+			long end = System.currentTimeMillis();
+			Thread.sleep(slice - 10 - (end - start));
+			return true;
+		} catch (InterruptedException ex) {
+			LOG.log(Level.SEVERE, "could not sleep", ex);
+			throw new ExecutionException(ex);
+		} catch (CouldNotPerformException ex) {
+			LOG.log(Level.SEVERE, "could not perform ^^", ex);
 			throw new ExecutionException(ex);
 		}
-		return true;
 	}
-
 }

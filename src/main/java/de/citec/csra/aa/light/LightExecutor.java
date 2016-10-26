@@ -6,12 +6,16 @@
 package de.citec.csra.aa.light;
 
 import de.citec.csra.aa.Executor;
+import de.citec.csra.util.Remotes;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import rsb.Factory;
-import rsb.Informer;
-import rsb.InitializeException;
+import org.openbase.jul.exception.CouldNotPerformException;
 import rsb.RSBException;
+import rst.domotic.unit.UnitConfigType.UnitConfig;
+import rst.domotic.unit.UnitTemplateType.UnitTemplate.UnitType;
+import static rst.domotic.unit.UnitTemplateType.UnitTemplate.UnitType.COLORABLE_LIGHT;
+import static rst.domotic.unit.UnitTemplateType.UnitTemplate.UnitType.DIMMABLE_LIGHT;
 
 /**
  *
@@ -20,18 +24,30 @@ import rsb.RSBException;
  */
 public class LightExecutor implements Executor {
 
-	private final Informer informer;
-	
-	public LightExecutor() throws InitializeException, RSBException {
-		this.informer = Factory.getInstance().createInformer("/home/locationlight/power");
-		this.informer.activate();
+	public List<UnitConfig> units(String location) throws InstantiationException, InterruptedException, CouldNotPerformException {
+		UnitType t;
+		switch (location.toLowerCase()) {
+			case "sports":
+				t = DIMMABLE_LIGHT;
+				break;
+			default:
+				t = COLORABLE_LIGHT;
+				break;
+		}
+		return Remotes.get().getLocationRegistry().getUnitConfigsByLocationLabel(t, location);
 	}
 
 	@Override
 	public void on(String location) {
 		try {
-			new OnExecutable(location, this.informer).schedule(0, 30000);
-		} catch (RSBException ex) {
+			for (UnitConfig unit : units(location)) {
+				try {
+					new OnExecutable(unit).schedule(0, 30000);
+				} catch (RSBException ex) {
+					Logger.getLogger(LightExecutor.class.getName()).log(Level.SEVERE, "failed to schedule on", ex);
+				}
+			}
+		} catch (InstantiationException | InterruptedException | CouldNotPerformException ex) {
 			Logger.getLogger(LightExecutor.class.getName()).log(Level.SEVERE, "failed to schedule on", ex);
 		}
 	}
@@ -39,10 +55,15 @@ public class LightExecutor implements Executor {
 	@Override
 	public void off(String location) {
 		try {
-			new OffExecutable(location, this.informer).schedule(0, 1000);
-		} catch (RSBException ex) {
-			Logger.getLogger(LightExecutor.class.getName()).log(Level.SEVERE, "failed to schedule off", ex);
+			for (UnitConfig unit : units(location)) {
+				try {
+					new OffExecutable(unit).schedule(0, 1000);
+				} catch (RSBException ex) {
+					Logger.getLogger(LightExecutor.class.getName()).log(Level.SEVERE, "failed to schedule on", ex);
+				}
+			}
+		} catch (InstantiationException | InterruptedException | CouldNotPerformException ex) {
+			Logger.getLogger(LightExecutor.class.getName()).log(Level.SEVERE, "failed to schedule on", ex);
 		}
 	}
-	
 }
