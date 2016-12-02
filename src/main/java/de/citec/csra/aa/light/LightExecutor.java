@@ -34,7 +34,9 @@ public class LightExecutor implements Executor {
 				t = COLORABLE_LIGHT;
 				break;
 		}
-		return Remotes.get().getLocationRegistry().getUnitConfigsByLocationLabel(t, location);
+		List<UnitConfig> units = Remotes.get().getLocationRegistry().getUnitConfigsByLocationLabel(t, location);
+		units.removeIf(u -> u.getLabel().contains("50"));
+		return units;
 	}
 
 	@Override
