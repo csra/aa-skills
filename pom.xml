@@ -22,13 +22,13 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>arbitration-service</artifactId>
-            <version>[0.7,)</version>
+            <version>[0.8,)</version>
             <type>jar</type>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>ha-utils</artifactId>
-            <version>[0.3,)</version>
+            <version>[0.4,)</version>
             <type>jar</type>
         </dependency>
     </dependencies>
