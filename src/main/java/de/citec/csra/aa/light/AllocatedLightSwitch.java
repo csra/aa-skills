@@ -14,11 +14,11 @@ import org.openbase.bco.dal.remote.unit.ColorableLightRemote;
 import org.openbase.jul.exception.CouldNotPerformException;
 import org.openbase.jul.extension.rsb.scope.ScopeGenerator;
 import rsb.RSBException;
-import rst.communicationpatterns.ResourceAllocationType;
+import rst.communicationpatterns.ResourceAllocationType.ResourceAllocation;
 import rst.communicationpatterns.ResourceAllocationType.ResourceAllocation.Initiator;
 import rst.communicationpatterns.ResourceAllocationType.ResourceAllocation.Policy;
 import rst.communicationpatterns.ResourceAllocationType.ResourceAllocation.Priority;
-import static rst.domotic.state.PowerStateType.PowerState.State.ON;
+import rst.domotic.state.PowerStateType.PowerState.State;
 import rst.domotic.unit.UnitConfigType.UnitConfig;
 
 /**
@@ -26,46 +26,57 @@ import rst.domotic.unit.UnitConfigType.UnitConfig;
  * @author Patrick Holthaus
  * (<a href=mailto:patrick.holthaus@uni-bielefeld.de>patrick.holthaus@uni-bielefeld.de</a>)
  */
-public class OnExecutable extends ExecutableResource {
+public class AllocatedLightSwitch extends ExecutableResource {
 
-	private final static Logger LOG = Logger.getLogger(OnExecutable.class.getName());
+	private final static Logger LOG = Logger.getLogger(AllocatedLightSwitch.class.getName());
 	private final UnitConfig unit;
+	private final State state;
+	private final long interval;
 
-	public OnExecutable(UnitConfig unit) {
-		super("auto-on:" + unit.getLabel(),
-				Policy.MAXIMUM,
-				Priority.NORMAL,
+	public AllocatedLightSwitch(UnitConfig unit, State state, Policy pol, Priority prio, long duration, long interval) {
+		super("switch:" + unit.getLabel() + " -> " + state.name(),
+				pol,
+				prio,
 				Initiator.SYSTEM,
+				0,
+				duration,
 				ScopeGenerator.generateStringRep(unit.getScope()));
 		this.unit = unit;
+		this.interval = interval;
+		this.state = state;
 	}
 
 	@Override
-	public void allocationUpdated(ResourceAllocationType.ResourceAllocation allocation, String cause) {
-		super.allocationUpdated(allocation, cause);
-		if (allocation.getSlot().getEnd().getTime() - allocation.getSlot().getBegin().getTime() < 10000) {
+	public Object execute() throws ExecutionException, InterruptedException {
+		if (interval > 0) {
+			while (interval < remaining()) {
+				exec();
+				Thread.sleep(interval);
+			}
+		} else {
+			exec();
+		}
+		return true;
+	}
+
+	@Override
+	public boolean updated(ResourceAllocation allocation) {
+		if (remaining() < interval) {
+			LOG.log(Level.FINE, "cancelling too short allocation");
 			try {
-				LOG.log(Level.FINE, "cancelling too short allocation");
 				shutdown();
 			} catch (RSBException ex) {
-				Logger.getLogger(OnExecutable.class.getName()).log(Level.SEVERE, "Could not cancel allocation", ex);
+				LOG.log(Level.SEVERE, "Could not cancel allocation", ex);
 			}
 		}
+		return true;
 	}
 
-	@Override
-	public Object execute(long slice) throws ExecutionException {
+	private void exec() throws ExecutionException, InterruptedException {
 		try {
-			long start = System.currentTimeMillis();
 			ColorableLightRemote light = Remotes.get().getColorableLight(unit);
-			LOG.log(Level.FINE, "execute setPower async with parameters ''{0}'' at ''{1}''", new Object[]{ON, unit.getLabel()});
-			light.setPowerState(rst.domotic.state.PowerStateType.PowerState.newBuilder().setValue(ON).build());
-			long end = System.currentTimeMillis();
-			Thread.sleep(slice - 10 - (end - start));
-			return true;
-		} catch (InterruptedException ex) {
-			LOG.log(Level.SEVERE, "could not sleep", ex);
-			throw new ExecutionException(ex);
+			LOG.log(Level.FINE, "execute setPower async with parameters ''{0}'' at ''{1}''", new Object[]{state, unit.getLabel() + " [" + ScopeGenerator.generateStringRep(unit.getScope()) + "]"});
+			light.setPowerState(rst.domotic.state.PowerStateType.PowerState.newBuilder().setValue(state).build());
 		} catch (CouldNotPerformException ex) {
 			LOG.log(Level.SEVERE, "could not perform ^^", ex);
 			throw new ExecutionException(ex);
