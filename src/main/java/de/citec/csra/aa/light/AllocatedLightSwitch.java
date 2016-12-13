@@ -56,6 +56,7 @@ public class AllocatedLightSwitch extends ExecutableResource {
 		} else {
 			exec();
 		}
+		Thread.sleep(Math.max(0, remaining()));
 		return true;
 	}
 
