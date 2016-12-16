@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.openbase.jul.exception.CouldNotPerformException;
+import org.openbase.jul.extension.rsb.scope.ScopeGenerator;
 import rsb.RSBException;
 import rst.communicationpatterns.ResourceAllocationType.ResourceAllocation.Policy;
 import static rst.communicationpatterns.ResourceAllocationType.ResourceAllocation.Policy.MAXIMUM;
@@ -34,6 +35,7 @@ import static rst.domotic.unit.UnitTemplateType.UnitTemplate.UnitType.DIMMABLE_L
 public class LightExecutor implements Executor {
 
 	private final Map<String, AllocatedLightSwitch> execs = new HashMap<>();
+	private final Map<String, List<UnitConfig>> units = new HashMap<>();
 
 	public List<UnitConfig> units(String location) throws InstantiationException, InterruptedException, CouldNotPerformException {
 		UnitType t;
@@ -45,9 +47,12 @@ public class LightExecutor implements Executor {
 				t = COLORABLE_LIGHT;
 				break;
 		}
-		List<UnitConfig> units = Remotes.get().getLocationRegistry().getUnitConfigsByLocationLabel(t, location);
-		units.removeIf(u -> u.getLabel().contains("50"));
-		return units;
+		if (!units.containsKey(location)) {
+			List<UnitConfig> remoteUnits = Remotes.get().getLocationRegistry().getUnitConfigsByLocationLabel(t, location);
+			remoteUnits.removeIf(u -> u.getLabel().contains("50"));
+			units.put(location, remoteUnits);
+		}
+		return units.get(location);
 	}
 
 	@Override
@@ -59,12 +64,12 @@ public class LightExecutor implements Executor {
 	public void off(String location) {
 		exec(location, OFF, MAXIMUM, LOW, 30000, 10000);
 	}
-	
+
 	private void exec(String location, State state, Policy policy, Priority priority, long duration, long interval) {
 		try {
 			for (UnitConfig unit : units(location)) {
 				try {
-					String id = unit + ":" + state;
+					String id = ScopeGenerator.generateStringRep(unit.getScope()) + ": " + state.name();
 					if (execs.containsKey(id) && execs.get(id).remaining() > 0) {
 						long now = System.currentTimeMillis();
 						execs.get(id).extendTo(now + duration);
