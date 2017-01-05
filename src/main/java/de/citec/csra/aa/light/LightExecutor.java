@@ -70,9 +70,9 @@ public class LightExecutor implements Executor {
 			for (UnitConfig unit : units(location)) {
 				try {
 					String id = ScopeGenerator.generateStringRep(unit.getScope()) + ": " + state.name();
-					if (execs.containsKey(id) && execs.get(id).remaining() > 0) {
+					if (execs.containsKey(id) && execs.get(id).getRemote().getRemainingTime() > 0) {
 						long now = System.currentTimeMillis();
-						execs.get(id).extendTo(now + duration);
+						execs.get(id).getRemote().extendTo(now + duration);
 					} else {
 						AllocatedLightSwitch exec = new AllocatedLightSwitch(unit, state, policy, priority, duration, interval);
 						exec.startup();

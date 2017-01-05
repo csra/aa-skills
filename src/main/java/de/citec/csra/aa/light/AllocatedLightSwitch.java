@@ -14,8 +14,7 @@ import org.openbase.bco.dal.remote.unit.ColorableLightRemote;
 import org.openbase.jul.exception.CouldNotPerformException;
 import org.openbase.jul.extension.rsb.scope.ScopeGenerator;
 import rsb.RSBException;
-import rst.communicationpatterns.ResourceAllocationType.ResourceAllocation;
-import rst.communicationpatterns.ResourceAllocationType.ResourceAllocation.Initiator;
+import static rst.communicationpatterns.ResourceAllocationType.ResourceAllocation.Initiator.SYSTEM;
 import rst.communicationpatterns.ResourceAllocationType.ResourceAllocation.Policy;
 import rst.communicationpatterns.ResourceAllocationType.ResourceAllocation.Priority;
 import rst.domotic.state.PowerStateType.PowerState.State;
@@ -26,7 +25,7 @@ import rst.domotic.unit.UnitConfigType.UnitConfig;
  * @author Patrick Holthaus
  * (<a href=mailto:patrick.holthaus@uni-bielefeld.de>patrick.holthaus@uni-bielefeld.de</a>)
  */
-public class AllocatedLightSwitch extends ExecutableResource {
+public class AllocatedLightSwitch extends ExecutableResource<Void> {
 
 	private final static Logger LOG = Logger.getLogger(AllocatedLightSwitch.class.getName());
 	private final UnitConfig unit;
@@ -35,11 +34,7 @@ public class AllocatedLightSwitch extends ExecutableResource {
 
 	public AllocatedLightSwitch(UnitConfig unit, State state, Policy pol, Priority prio, long duration, long interval) {
 		super("switch:" + unit.getLabel() + " -> " + state.name(),
-				pol,
-				prio,
-				Initiator.SYSTEM,
-				0,
-				duration,
+				pol, prio, SYSTEM, 0, duration, true,
 				ScopeGenerator.generateStringRep(unit.getScope()));
 		this.unit = unit;
 		this.interval = interval;
@@ -47,22 +42,21 @@ public class AllocatedLightSwitch extends ExecutableResource {
 	}
 
 	@Override
-	public Object execute() throws ExecutionException, InterruptedException {
+	public Void execute() throws ExecutionException, InterruptedException {
 		if (interval > 0) {
-			while (interval < remaining()) {
+			while (interval < getRemote().getRemainingTime()) {
 				exec();
 				Thread.sleep(interval);
 			}
 		} else {
 			exec();
 		}
-		Thread.sleep(Math.max(0, remaining()));
-		return true;
+		return null;
 	}
-
+	
 	@Override
-	public boolean updated(ResourceAllocation allocation) {
-		if (remaining() < interval) {
+	public void timeChanged(long remaining) {
+		if (remaining < interval) {
 			LOG.log(Level.FINE, "cancelling too short allocation");
 			try {
 				shutdown();
@@ -70,7 +64,6 @@ public class AllocatedLightSwitch extends ExecutableResource {
 				LOG.log(Level.SEVERE, "Could not cancel allocation", ex);
 			}
 		}
-		return true;
 	}
 
 	private void exec() throws ExecutionException, InterruptedException {
