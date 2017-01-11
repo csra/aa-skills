@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>de.citec.csra</groupId>
     <artifactId>aa-skills</artifactId>
-    <version>0.5-SNAPSHOT</version>
+    <version>0.5</version>
     <packaging>jar</packaging>
 	
 	<repositories>
@@ -28,7 +28,7 @@
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>ha-utils</artifactId>
-            <version>[0.3,)</version>
+            <version>[0.5,0.6-SNAPSHOT)</version>
             <type>jar</type>
         </dependency>
     </dependencies>
