@@ -32,7 +32,7 @@ public class AllocatedLightSwitch extends ExecutableResource<Void> {
 	private final State state;
 	private final long interval;
 
-	public AllocatedLightSwitch(UnitConfig unit, State state, Policy pol, Priority prio, long duration, long interval) {
+	public AllocatedLightSwitch(UnitConfig unit, State state, Policy pol, Priority prio, long duration, long interval) throws CouldNotPerformException {
 		super("switch:" + unit.getLabel() + " -> " + state.name(),
 				pol, prio, SYSTEM, 0, duration, true,
 				ScopeGenerator.generateStringRep(unit.getScope()));
@@ -44,7 +44,7 @@ public class AllocatedLightSwitch extends ExecutableResource<Void> {
 	@Override
 	public Void execute() throws ExecutionException, InterruptedException {
 		if (interval > 0) {
-			while (interval < getRemote().getRemainingTime()) {
+			while (interval < getRemote().getRemainingTime()) { 
 				exec();
 				Thread.sleep(interval);
 			}
