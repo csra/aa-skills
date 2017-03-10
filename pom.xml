@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>de.citec.csra</groupId>
     <artifactId>aa-skills</artifactId>
-    <version>0.5</version>
+    <version>0.6-SNAPSHOT</version>
     <packaging>jar</packaging>
 	
 	<repositories>
@@ -21,14 +21,14 @@
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
-            <artifactId>arbitration-service</artifactId>
-            <version>[0.10,0.11-SNAPSHOT)</version>
+            <artifactId>rta-lib</artifactId>
+            <version>1.0-SNAPSHOT</version>
             <type>jar</type>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>ha-utils</artifactId>
-            <version>[0.5,0.6-SNAPSHOT)</version>
+            <version>0.6-SNAPSHOT</version>
             <type>jar</type>
         </dependency>
     </dependencies>

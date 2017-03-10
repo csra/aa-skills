@@ -6,7 +6,7 @@
 package de.citec.csra.aa.light;
 
 import de.citec.csra.aa.Executor;
-import de.citec.csra.util.Remotes;
+import de.citec.csra.init.Remotes;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,6 +36,7 @@ public class LightExecutor implements Executor {
 
 	private final Map<String, AllocatedLightSwitch> execs = new HashMap<>();
 	private final Map<String, List<UnitConfig>> units = new HashMap<>();
+	private final long TIMEOUT = 500;
 
 	public List<UnitConfig> units(String location) throws InstantiationException, InterruptedException, CouldNotPerformException {
 		UnitType t;
@@ -48,7 +49,7 @@ public class LightExecutor implements Executor {
 				break;
 		}
 		if (!units.containsKey(location)) {
-			List<UnitConfig> remoteUnits = Remotes.get().getLocationRegistry().getUnitConfigsByLocationLabel(t, location);
+			List<UnitConfig> remoteUnits = Remotes.get().getLocationRegistry(TIMEOUT).getUnitConfigsByLocationLabel(t, location);
 			remoteUnits.removeIf(u -> u.getLabel().contains("50"));
 			units.put(location, remoteUnits);
 		}
