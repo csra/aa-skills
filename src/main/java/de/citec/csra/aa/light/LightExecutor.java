@@ -58,7 +58,7 @@ public class LightExecutor implements Executor {
 
 	@Override
 	public void on(String location) {
-		exec(location, ON, MAXIMUM, NORMAL, 30000, 10000);
+		exec(location, ON, MAXIMUM, NORMAL, 45000, 10000);
 	}
 
 	@Override

@@ -36,7 +36,7 @@ public class AutoExecution {
 		l.addHandler(new RSBResultHandler(actor), true);
 		
 		l.activate();
-		new Thread(new PeriodicalSwitch(actor, 15000, false)).start();
+		new Thread(new PeriodicalSwitch(actor, 10000, false)).start();
 		
 	}
 }
