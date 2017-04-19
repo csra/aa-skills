@@ -3,8 +3,9 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>de.citec.csra</groupId>
     <artifactId>aa-skills</artifactId>
-    <version>0.6-SNAPSHOT</version>
+    <version>0.6</version>
     <packaging>jar</packaging>
+    <name>aa-skills</name>
 	
 	<repositories>
 		<repository>
@@ -18,26 +19,28 @@
 		</repository>
 	</repositories>
 	
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<maven.compiler.source>1.8</maven.compiler.source>
+		<maven.compiler.target>1.8</maven.compiler.target>
+		<rta.version>[1.0,1.1-SNAPSHOT)</rta.version>
+		<hau.version>[0.6,0.7-SNAPSHOT)</hau.version>
+	</properties>
+	
     <dependencies>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>rta-lib</artifactId>
-            <version>1.0-SNAPSHOT</version>
+            <version>${rta.version}</version>
             <type>jar</type>
         </dependency>
         <dependency>
             <groupId>${project.groupId}</groupId>
             <artifactId>ha-utils</artifactId>
-            <version>0.6-SNAPSHOT</version>
+            <version>${hau.version}</version>
             <type>jar</type>
         </dependency>
     </dependencies>
-    <properties>
-        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <maven.compiler.source>1.8</maven.compiler.source>
-        <maven.compiler.target>1.8</maven.compiler.target>
-    </properties>
-    <name>aa-skills</name>
 	
 	<build>
 		<plugins>
