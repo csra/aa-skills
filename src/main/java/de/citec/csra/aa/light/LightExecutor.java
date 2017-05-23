@@ -34,10 +34,10 @@ import static rst.domotic.unit.UnitTemplateType.UnitTemplate.UnitType.DIMMABLE_L
  */
 public class LightExecutor implements Executor {
 
+	private final long HA_TIMEOUT = 500;
+	
 	private final Map<String, AllocatedLightSwitch> execs = new HashMap<>();
 	private final Map<String, List<UnitConfig>> units = new HashMap<>();
-	private final long TIMEOUT = 500;
-
 	public List<UnitConfig> units(String location) throws InstantiationException, InterruptedException, CouldNotPerformException {
 		UnitType t;
 		switch (location.toLowerCase()) {
@@ -49,7 +49,7 @@ public class LightExecutor implements Executor {
 				break;
 		}
 		if (!units.containsKey(location)) {
-			List<UnitConfig> remoteUnits = Remotes.get().getLocationRegistry(TIMEOUT).getUnitConfigsByLocationLabel(t, location);
+			List<UnitConfig> remoteUnits = Remotes.get().getLocationRegistry(HA_TIMEOUT).getUnitConfigsByLocationLabel(t, location);
 			remoteUnits.removeIf(u -> u.getLabel().contains("50"));
 			units.put(location, remoteUnits);
 		}

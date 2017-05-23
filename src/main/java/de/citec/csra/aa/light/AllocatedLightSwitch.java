@@ -27,8 +27,9 @@ import rst.domotic.unit.UnitConfigType.UnitConfig;
  */
 public class AllocatedLightSwitch extends ExecutableResource<Void> {
 
+	private final long HA_TIMEOUT = 500;
+
 	private final static Logger LOG = Logger.getLogger(AllocatedLightSwitch.class.getName());
-	private final long TIMEOUT = 500;
 	private final UnitConfig unit;
 	private final State state;
 	private final long interval;
@@ -45,7 +46,7 @@ public class AllocatedLightSwitch extends ExecutableResource<Void> {
 	@Override
 	public Void execute() throws ExecutionException, InterruptedException {
 		if (interval > 0) {
-			while (interval < getRemote().getRemainingTime()) { 
+			while (interval < getRemote().getRemainingTime()) {
 				exec();
 				Thread.sleep(interval);
 			}
@@ -57,7 +58,7 @@ public class AllocatedLightSwitch extends ExecutableResource<Void> {
 
 	private void exec() throws ExecutionException, InterruptedException {
 		try {
-			ColorableLightRemote light = Remotes.get().getColorableLight(unit, TIMEOUT);
+			ColorableLightRemote light = Remotes.get().getColorableLight(unit, HA_TIMEOUT);
 			LOG.log(Level.FINE, "execute setPower async with parameters ''{0}'' at ''{1}''", new Object[]{state, unit.getLabel() + " [" + ScopeGenerator.generateStringRep(unit.getScope()) + "]"});
 			light.setPowerState(rst.domotic.state.PowerStateType.PowerState.newBuilder().setValue(state).build());
 		} catch (CouldNotPerformException ex) {
