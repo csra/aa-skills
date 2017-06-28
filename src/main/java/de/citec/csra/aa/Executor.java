@@ -12,7 +12,7 @@ package de.citec.csra.aa;
  */
 public interface Executor {
 
-	public void on(String location);
+	public void on(String location) throws InterruptedException;
 
-	public void off(String location);
+	public void off(String location) throws InterruptedException;
 }

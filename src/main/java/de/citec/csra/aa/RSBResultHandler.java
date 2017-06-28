@@ -28,7 +28,12 @@ public class RSBResultHandler implements Handler {
 	@Override
 	public void internalNotify(Event event) {
 		if (event.getData() instanceof ClassificationResultMap) {
-			actor.handle((ClassificationResultMap) event.getData());
+			try {
+				actor.handle((ClassificationResultMap) event.getData());
+			} catch (InterruptedException ex) {
+				LOG.log(Level.SEVERE, "Interrupted, aborting", ex);
+				Thread.currentThread().interrupt();
+			}
 		} else {
 			LOG.log(Level.FINE, "Ignoring irrelevant data type of class ''{0}''", event.getType().getName());
 		}

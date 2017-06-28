@@ -45,15 +45,15 @@ public class PeriodicalSwitch implements Runnable {
 					if (result instanceof ClassificationResultMap) {
 						actor.handle((ClassificationResultMap) result);
 					} else {
-						LOG.log(Level.WARNING, "Ignoring irrelevant return type of class ''{0}''", result.getClass().getName());
+						LOG.log(Level.FINE, "Ignoring irrelevant return type of class ''{0}''", result.getClass().getName());
 					}
 				}
 				Thread.sleep(interval);
 			} catch (InterruptedException ex) {
-				Logger.getLogger(PeriodicalSwitch.class.getName()).log(Level.SEVERE, "Interrupted, shutting down", ex);
+				LOG.log(Level.SEVERE, "Interrupted, shutting down", ex);
 				Thread.currentThread().interrupt();
 			} catch (RSBException | ExecutionException | TimeoutException ex) {
-				Logger.getLogger(PeriodicalSwitch.class.getName()).log(Level.SEVERE, "Error querying situation, retrying next time", ex);
+				LOG.log(Level.SEVERE, "Error querying situation, retrying next time", ex);
 			}
 		}
 	}

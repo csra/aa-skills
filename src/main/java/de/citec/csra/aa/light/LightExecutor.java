@@ -6,12 +6,13 @@
 package de.citec.csra.aa.light;
 
 import de.citec.csra.aa.Executor;
-import de.citec.csra.init.Remotes;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.openbase.bco.registry.remote.Registries;
 import org.openbase.jul.exception.CouldNotPerformException;
 import org.openbase.jul.extension.rsb.scope.ScopeGenerator;
 import rsb.RSBException;
@@ -34,11 +35,23 @@ import static rst.domotic.unit.UnitTemplateType.UnitTemplate.UnitType.DIMMABLE_L
  */
 public class LightExecutor implements Executor {
 
-	private final long HA_TIMEOUT = 500;
-	
+	private final static Logger LOG = Logger.getLogger(LightExecutor.class.getName());
+
 	private final Map<String, AllocatedLightSwitch> execs = new HashMap<>();
 	private final Map<String, List<UnitConfig>> units = new HashMap<>();
-	public List<UnitConfig> units(String location) throws InstantiationException, InterruptedException, CouldNotPerformException {
+	private final long TIMEOUT = 5000;
+
+	public LightExecutor() throws InterruptedException {
+		try {
+//			broken wait for data workaround
+			Registries.getUnitRegistry().waitForData(TIMEOUT, TimeUnit.MILLISECONDS);
+			Registries.getLocationRegistry().waitForData(TIMEOUT, TimeUnit.MILLISECONDS);
+		} catch (CouldNotPerformException ex) {
+			LOG.log(Level.SEVERE, "Registries not ready yet", ex);
+		}
+	}
+
+	public List<UnitConfig> units(String location) throws InterruptedException {
 		UnitType t;
 		switch (location.toLowerCase()) {
 			case "sports":
@@ -49,42 +62,42 @@ public class LightExecutor implements Executor {
 				break;
 		}
 		if (!units.containsKey(location)) {
-			List<UnitConfig> remoteUnits = Remotes.get().getLocationRegistry(HA_TIMEOUT).getUnitConfigsByLocationLabel(t, location);
-			remoteUnits.removeIf(u -> u.getLabel().contains("50"));
-			units.put(location, remoteUnits);
+			try {
+				List<UnitConfig> remoteUnits = Registries.getLocationRegistry().getUnitConfigsByLocationLabel(t, location);
+				remoteUnits.removeIf(u -> u.getLabel().contains("50"));
+				units.put(location, remoteUnits);
+			} catch (CouldNotPerformException ex) {
+				LOG.log(Level.SEVERE, "Could not read location registry", ex);
+			}
 		}
 		return units.get(location);
 	}
 
 	@Override
-	public void on(String location) {
+	public void on(String location) throws InterruptedException {
 		exec(location, ON, MAXIMUM, NORMAL, 45000, 10000);
 	}
 
 	@Override
-	public void off(String location) {
+	public void off(String location) throws InterruptedException {
 		exec(location, OFF, MAXIMUM, LOW, 30000, 10000);
 	}
 
-	private void exec(String location, State state, Policy policy, Priority priority, long duration, long interval) {
-		try {
-			for (UnitConfig unit : units(location)) {
-				try {
-					String id = ScopeGenerator.generateStringRep(unit.getScope()) + ": " + state.name();
-					if (execs.containsKey(id) && execs.get(id).getRemote().getRemainingTime() > 0) {
-						long now = System.currentTimeMillis();
-						execs.get(id).getRemote().extendTo(now + duration);
-					} else {
-						AllocatedLightSwitch exec = new AllocatedLightSwitch(unit, state, policy, priority, duration, interval);
-						exec.startup();
-						execs.put(id, exec);
-					}
-				} catch (RSBException ex) {
-					Logger.getLogger(LightExecutor.class.getName()).log(Level.SEVERE, "failed to schedule executable", ex);
+	private void exec(String location, State state, Policy policy, Priority priority, long duration, long interval) throws InterruptedException {
+		for (UnitConfig unit : units(location)) {
+			try {
+				String id = ScopeGenerator.generateStringRep(unit.getScope()) + ": " + state.name();
+				if (execs.containsKey(id) && execs.get(id).getRemote().getRemainingTime() > 0) {
+					long now = System.currentTimeMillis();
+					execs.get(id).getRemote().extendTo(now + duration);
+				} else {
+					AllocatedLightSwitch exec = new AllocatedLightSwitch(unit, state, policy, priority, duration, interval);
+					exec.startup();
+					execs.put(id, exec);
 				}
+			} catch (RSBException | CouldNotPerformException ex) {
+				LOG.log(Level.SEVERE, "failed to schedule executable '" + state.name() + "'", ex);
 			}
-		} catch (InstantiationException | InterruptedException | CouldNotPerformException ex) {
-			Logger.getLogger(LightExecutor.class.getName()).log(Level.SEVERE, "failed to schedule", ex);
 		}
 	}
 }

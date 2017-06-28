@@ -7,16 +7,19 @@ package de.citec.csra.aa.light;
 
 import de.citec.csra.allocation.cli.ExecutableResource;
 import static de.citec.csra.allocation.cli.ExecutableResource.Completion.MONITOR;
-import de.citec.csra.init.Remotes;
 import java.util.concurrent.ExecutionException;
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.openbase.bco.dal.remote.unit.ColorableLightRemote;
+import org.openbase.bco.dal.remote.unit.Units;
 import org.openbase.jul.exception.CouldNotPerformException;
 import org.openbase.jul.extension.rsb.scope.ScopeGenerator;
 import static rst.communicationpatterns.ResourceAllocationType.ResourceAllocation.Initiator.SYSTEM;
 import rst.communicationpatterns.ResourceAllocationType.ResourceAllocation.Policy;
 import rst.communicationpatterns.ResourceAllocationType.ResourceAllocation.Priority;
+import rst.domotic.state.PowerStateType.PowerState;
 import rst.domotic.state.PowerStateType.PowerState.State;
 import rst.domotic.unit.UnitConfigType.UnitConfig;
 
@@ -58,12 +61,14 @@ public class AllocatedLightSwitch extends ExecutableResource<Void> {
 
 	private void exec() throws ExecutionException, InterruptedException {
 		try {
-			ColorableLightRemote light = Remotes.get().getColorableLight(unit, HA_TIMEOUT);
+			ColorableLightRemote light = Units.getFutureUnit(unit, true, ColorableLightRemote.class).get(HA_TIMEOUT, MILLISECONDS);
 			LOG.log(Level.FINE, "execute setPower async with parameters ''{0}'' at ''{1}''", new Object[]{state, unit.getLabel() + " [" + ScopeGenerator.generateStringRep(unit.getScope()) + "]"});
-			light.setPowerState(rst.domotic.state.PowerStateType.PowerState.newBuilder().setValue(state).build());
+			light.setPowerState(PowerState.newBuilder().setValue(state).build());
 		} catch (CouldNotPerformException ex) {
 			LOG.log(Level.SEVERE, "could not perform ^^", ex);
 			throw new ExecutionException(ex);
+		} catch (TimeoutException ex) {
+			LOG.log(Level.SEVERE, "timeout", ex);
 		}
 	}
 }

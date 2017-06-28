@@ -11,7 +11,6 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Collectors;
-import rst.classification.ClassificationResultMapType;
 import rst.classification.ClassificationResultMapType.ClassificationResultMap;
 
 /**
@@ -32,7 +31,7 @@ public class ResultHandler {
 		this.execs.remove(exec);
 	}
 
-	public void handle(ClassificationResultMap m) {
+	public void handle(ClassificationResultMap m) throws InterruptedException {
 		Set<String> movement = filter(m, "some");
 		Set<String> noMovement = filter(m, "none");
 		noMovement.removeAll(movement);
@@ -52,7 +51,7 @@ public class ResultHandler {
 		}
 	}
 
-	public Set<String> filter(ClassificationResultMapType.ClassificationResultMap sit, String decided) {
+	public Set<String> filter(ClassificationResultMap sit, String decided) {
 		Set<String> matching = sit.getAspectsList().stream()
 				.filter(a -> a.getName().startsWith("Movement_"))
 				.filter(a -> a.getResult().getDecidedClass().toStringUtf8().equalsIgnoreCase(decided))

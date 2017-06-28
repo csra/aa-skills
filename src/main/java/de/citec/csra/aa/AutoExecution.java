@@ -12,7 +12,7 @@ import rsb.Listener;
 import rsb.RSBException;
 import rsb.converter.DefaultConverterRepository;
 import rsb.converter.ProtocolBufferConverter;
-import rst.classification.ClassificationResultMapType;
+import rst.classification.ClassificationResultMapType.ClassificationResultMap;
 
 /**
  *
@@ -22,8 +22,9 @@ import rst.classification.ClassificationResultMapType;
 public class AutoExecution {
 	
 	static {
-		DefaultConverterRepository.getDefaultConverterRepository()
-				.addConverter(new ProtocolBufferConverter<>(ClassificationResultMapType.ClassificationResultMap.getDefaultInstance()));
+		DefaultConverterRepository
+				.getDefaultConverterRepository()
+				.addConverter(new ProtocolBufferConverter<>(ClassificationResultMap.getDefaultInstance()));
 	}
 	
 	public static final String SITUTATION = "/home/situation/result";
