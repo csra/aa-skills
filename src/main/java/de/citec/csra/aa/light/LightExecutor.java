@@ -84,19 +84,22 @@ public class LightExecutor implements Executor {
 	}
 
 	private void exec(String location, State state, Policy policy, Priority priority, long duration, long interval) throws InterruptedException {
-		for (UnitConfig unit : units(location)) {
-			try {
-				String id = ScopeGenerator.generateStringRep(unit.getScope()) + ": " + state.name();
-				if (execs.containsKey(id) && execs.get(id).getRemote().getRemainingTime() > 0) {
-					long now = System.currentTimeMillis();
-					execs.get(id).getRemote().extendTo(now + duration);
-				} else {
-					AllocatedLightSwitch exec = new AllocatedLightSwitch(unit, state, policy, priority, duration, interval);
-					exec.startup();
-					execs.put(id, exec);
+		List<UnitConfig> us = units(location);
+		if (us != null) {
+			for (UnitConfig unit : us) {
+				try {
+					String id = ScopeGenerator.generateStringRep(unit.getScope()) + ": " + state.name();
+					if (execs.containsKey(id) && execs.get(id).getRemote().getRemainingTime() > 0) {
+						long now = System.currentTimeMillis();
+						execs.get(id).getRemote().extendTo(now + duration);
+					} else {
+						AllocatedLightSwitch exec = new AllocatedLightSwitch(unit, state, policy, priority, duration, interval);
+						exec.startup();
+						execs.put(id, exec);
+					}
+				} catch (RSBException | CouldNotPerformException ex) {
+					LOG.log(Level.SEVERE, "failed to schedule executable '" + state.name() + "'", ex);
 				}
-			} catch (RSBException | CouldNotPerformException ex) {
-				LOG.log(Level.SEVERE, "failed to schedule executable '" + state.name() + "'", ex);
 			}
 		}
 	}
