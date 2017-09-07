@@ -8,6 +8,7 @@ package de.citec.csra.aa.light;
 import de.citec.csra.allocation.cli.ExecutableResource;
 import static de.citec.csra.allocation.cli.ExecutableResource.Completion.MONITOR;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.TimeUnit;
 import static java.util.concurrent.TimeUnit.MILLISECONDS;
 import java.util.concurrent.TimeoutException;
 import java.util.logging.Level;
@@ -33,16 +34,16 @@ public class AllocatedLightSwitch extends ExecutableResource<Void> {
 	private final long HA_TIMEOUT = 500;
 
 	private final static Logger LOG = Logger.getLogger(AllocatedLightSwitch.class.getName());
-	private final UnitConfig unit;
+	private final UnitConfig unitCfg;
 	private final State state;
 	private final long interval;
 
-	public AllocatedLightSwitch(UnitConfig unit, State state, Policy pol, Priority prio, long duration, long interval) throws CouldNotPerformException {
-		super("switch:" + unit.getLabel() + " -> " + state.name(),
-				pol, prio, SYSTEM, 0, duration, MONITOR,
-				ScopeGenerator.generateStringRep(unit.getScope()));
-		this.unit = unit;
-		this.interval = interval;
+public AllocatedLightSwitch(UnitConfig unitCfg, State state, Policy pol, Priority prio, long duration, long interval, TimeUnit timeUnit) throws CouldNotPerformException {
+		super("switch:" + unitCfg.getLabel() + " -> " + state.name(),
+				pol, prio, SYSTEM, 0, duration, timeUnit, MONITOR,
+				ScopeGenerator.generateStringRep(unitCfg.getScope()));
+		this.unitCfg = unitCfg;
+		this.interval = timeUnit.toMicros(interval);
 		this.state = state;
 	}
 
@@ -51,7 +52,7 @@ public class AllocatedLightSwitch extends ExecutableResource<Void> {
 		if (interval > 0) {
 			while (interval < getRemote().getRemainingTime()) {
 				exec();
-				Thread.sleep(interval);
+				Thread.sleep(interval / 1000, (int) ((interval % 1000) * 1000));
 			}
 		} else {
 			exec();
@@ -61,8 +62,8 @@ public class AllocatedLightSwitch extends ExecutableResource<Void> {
 
 	private void exec() throws ExecutionException, InterruptedException {
 		try {
-			ColorableLightRemote light = Units.getFutureUnit(unit, true, ColorableLightRemote.class).get(HA_TIMEOUT, MILLISECONDS);
-			LOG.log(Level.FINE, "execute setPower async with parameters ''{0}'' at ''{1}''", new Object[]{state, unit.getLabel() + " [" + ScopeGenerator.generateStringRep(unit.getScope()) + "]"});
+			ColorableLightRemote light = Units.getFutureUnit(unitCfg, true, ColorableLightRemote.class).get(HA_TIMEOUT, MILLISECONDS);
+			LOG.log(Level.FINE, "execute setPower async with parameters ''{0}'' at ''{1}''", new Object[]{state, unitCfg.getLabel() + " [" + ScopeGenerator.generateStringRep(unitCfg.getScope()) + "]"});
 			light.setPowerState(PowerState.newBuilder().setValue(state).build());
 		} catch (CouldNotPerformException ex) {
 			LOG.log(Level.SEVERE, "could not perform ^^", ex);

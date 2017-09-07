@@ -6,10 +6,13 @@
 package de.citec.csra.aa.light;
 
 import de.citec.csra.aa.Executor;
+import de.citec.csra.rst.util.IntervalUtils;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import static java.util.concurrent.TimeUnit.MICROSECONDS;
+import static java.util.concurrent.TimeUnit.SECONDS;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.openbase.bco.registry.remote.Registries;
@@ -75,31 +78,32 @@ public class LightExecutor implements Executor {
 
 	@Override
 	public void on(String location) throws InterruptedException {
-		exec(location, ON, MAXIMUM, NORMAL, 45000, 10000);
+		exec(location, ON, MAXIMUM, NORMAL, 45, 10, SECONDS);
 	}
 
 	@Override
 	public void off(String location) throws InterruptedException {
-		exec(location, OFF, MAXIMUM, LOW, 30000, 10000);
+		exec(location, OFF, MAXIMUM, LOW, 30, 10, SECONDS);
 	}
 
-	private void exec(String location, State state, Policy policy, Priority priority, long duration, long interval) throws InterruptedException {
+	private void exec(String location, State state, Policy policy, Priority priority, long duration, long interval, TimeUnit timeUnit) throws InterruptedException {
 		List<UnitConfig> us = units(location);
 		if (us != null) {
 			for (UnitConfig unit : us) {
 				try {
 					String id = ScopeGenerator.generateStringRep(unit.getScope()) + ": " + state.name();
 					if (execs.containsKey(id) && execs.get(id).getRemote().getRemainingTime() > 0) {
-						long now = System.currentTimeMillis();
-						execs.get(id).getRemote().extendTo(now + duration);
+						long now = IntervalUtils.currentTimeInMicros();
+						execs.get(id).getRemote().extendTo(timeUnit.convert(now, MICROSECONDS) + duration, timeUnit);
 					} else {
-						AllocatedLightSwitch exec = new AllocatedLightSwitch(unit, state, policy, priority, duration, interval);
+						AllocatedLightSwitch exec = new AllocatedLightSwitch(unit, state, policy, priority, duration, interval, timeUnit);
 						exec.startup();
 						execs.put(id, exec);
 					}
 				} catch (RSBException | CouldNotPerformException ex) {
 					LOG.log(Level.SEVERE, "failed to schedule executable '" + state.name() + "'", ex);
 				}
+				break;
 			}
 		}
 	}
