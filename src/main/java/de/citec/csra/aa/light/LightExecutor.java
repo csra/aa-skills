@@ -103,7 +103,6 @@ public class LightExecutor implements Executor {
 				} catch (RSBException | CouldNotPerformException ex) {
 					LOG.log(Level.SEVERE, "failed to schedule executable '" + state.name() + "'", ex);
 				}
-				break;
 			}
 		}
 	}
