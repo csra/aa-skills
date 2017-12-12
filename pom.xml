@@ -15,7 +15,7 @@
 		<rsb.version>[0.17.0,0.18-SNAPSHOT)</rsb.version>
 		<rta.version>1.4.0</rta.version>
 		<rsu.version>0.4.0</rsu.version>
-		<dal.version>[1.5,1.6-SNAPSHOT)</dal.version>
+		<dal.version>[1.5-alpha,1.5-SNAPSHOT)</dal.version>
 	</properties>
 	
 	<repositories>
