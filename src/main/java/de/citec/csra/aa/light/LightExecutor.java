@@ -24,18 +24,19 @@ import static rst.communicationpatterns.ResourceAllocationType.ResourceAllocatio
 import rst.communicationpatterns.ResourceAllocationType.ResourceAllocation.Priority;
 import static rst.communicationpatterns.ResourceAllocationType.ResourceAllocation.Priority.LOW;
 import static rst.communicationpatterns.ResourceAllocationType.ResourceAllocation.Priority.NORMAL;
-import rst.domotic.state.PowerStateType.PowerState.State;
-import static rst.domotic.state.PowerStateType.PowerState.State.*;
-import rst.domotic.unit.UnitConfigType.UnitConfig;
-import rst.domotic.unit.UnitTemplateType.UnitTemplate.UnitType;
-import static rst.domotic.unit.UnitTemplateType.UnitTemplate.UnitType.COLORABLE_LIGHT;
-import static rst.domotic.unit.UnitTemplateType.UnitTemplate.UnitType.DIMMABLE_LIGHT;
+import org.openbase.type.domotic.state.PowerStateType.PowerState.State;
+import static org.openbase.type.domotic.state.PowerStateType.PowerState.State.*;
+import org.openbase.type.domotic.unit.UnitConfigType.UnitConfig;
+import org.openbase.type.domotic.unit.UnitTemplateType.UnitTemplate.UnitType;
+import static org.openbase.type.domotic.unit.UnitTemplateType.UnitTemplate.UnitType.COLORABLE_LIGHT;
+import static org.openbase.type.domotic.unit.UnitTemplateType.UnitTemplate.UnitType.DIMMABLE_LIGHT;
 
 /**
  *
  * @author Patrick Holthaus
  * (<a href=mailto:patrick.holthaus@uni-bielefeld.de>patrick.holthaus@uni-bielefeld.de</a>)
  */
+@Deprecated
 public class LightExecutor implements Executor {
 
 	private final static Logger LOG = Logger.getLogger(LightExecutor.class.getName());
@@ -46,34 +47,10 @@ public class LightExecutor implements Executor {
 
 	public LightExecutor() throws InterruptedException {
 		try {
-//			broken wait for data workaround
 			Registries.getUnitRegistry().waitForData(TIMEOUT, TimeUnit.MILLISECONDS);
-			Registries.getLocationRegistry().waitForData(TIMEOUT, TimeUnit.MILLISECONDS);
 		} catch (CouldNotPerformException ex) {
 			LOG.log(Level.SEVERE, "Registries not ready yet", ex);
 		}
-	}
-
-	public List<UnitConfig> units(String location) throws InterruptedException {
-		UnitType t;
-		switch (location.toLowerCase()) {
-			case "sports":
-				t = DIMMABLE_LIGHT;
-				break;
-			default:
-				t = COLORABLE_LIGHT;
-				break;
-		}
-		if (!units.containsKey(location)) {
-			try {
-				List<UnitConfig> remoteUnits = Registries.getLocationRegistry().getUnitConfigsByLocationLabel(t, location);
-				remoteUnits.removeIf(u -> u.getLabel().contains("50"));
-				units.put(location, remoteUnits);
-			} catch (CouldNotPerformException ex) {
-				LOG.log(Level.SEVERE, "Could not read location registry", ex);
-			}
-		}
-		return units.get(location);
 	}
 
 	@Override
@@ -87,7 +64,12 @@ public class LightExecutor implements Executor {
 	}
 
 	private void exec(String location, State state, Policy policy, Priority priority, long duration, long interval, TimeUnit timeUnit) throws InterruptedException {
-		List<UnitConfig> us = units(location);
+		List<UnitConfig> us = null;
+		try {
+			us = Registries.getUnitRegistry().getUnitConfigsByLocationAlias(location);
+		} catch (CouldNotPerformException e) {
+			e.printStackTrace();
+		}
 		if (us != null) {
 			for (UnitConfig unit : us) {
 				try {

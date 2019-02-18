@@ -18,6 +18,7 @@ import rst.classification.ClassificationResultMapType.ClassificationResultMap;
  * @author Patrick Holthaus
  * (<a href=mailto:patrick.holthaus@uni-bielefeld.de>patrick.holthaus@uni-bielefeld.de</a>)
  */
+@Deprecated
 public class ResultHandler {
 
 	private final static Logger LOG = Logger.getLogger(ResultHandler.class.getName());

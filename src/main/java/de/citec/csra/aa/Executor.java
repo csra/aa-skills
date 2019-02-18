@@ -10,6 +10,7 @@ package de.citec.csra.aa;
  * @author Patrick Holthaus
  * (<a href=mailto:patrick.holthaus@uni-bielefeld.de>patrick.holthaus@uni-bielefeld.de</a>)
  */
+@Deprecated
 public interface Executor {
 
 	public void on(String location) throws InterruptedException;
